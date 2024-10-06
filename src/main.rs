@@ -538,6 +538,7 @@ impl ParamConvert for serde_yaml::Value {
             serde_yaml::Value::Mapping(_) => Err("Mapping"),
             serde_yaml::Value::String(_) => Err("String"),
             serde_yaml::Value::Null => Err("Null"),
+            serde_yaml::Value::Tagged(_) => Err("Tagged"),
         }
     }
     fn from_param(value: &SoundCoreParamValue) -> Self {
