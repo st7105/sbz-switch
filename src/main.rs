@@ -105,6 +105,7 @@ fn run() -> i32 {
                         .help("Sets an integer value")
                         .action(ArgAction::Append)
                         .number_of_values(3)
+                        .allow_negative_numbers(true)
                         .value_names(["FEATURE", "PARAMETER", "VALUE"]),
                 )
                 .arg(
@@ -113,6 +114,7 @@ fn run() -> i32 {
                         .help("Sets a floating-point value")
                         .action(ArgAction::Append)
                         .number_of_values(3)
+                        .allow_negative_numbers(true)
                         .value_names(["FEATURE", "PARAMETER", "VALUE"]),
                 )
                 .arg(
