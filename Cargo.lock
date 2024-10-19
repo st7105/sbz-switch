@@ -392,6 +392,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "toml",
+ "toml_edit",
  "tracing",
  "tracing-subscriber",
  "windows",

@@ -1,20 +1,11 @@
 #[macro_use]
 extern crate serde_derive;
 
-use clap::{value_parser, ArgAction, Command};
-use clap::{Arg, ArgMatches};
-
-use indexmap::IndexMap;
-use tracing::{debug, error};
-use tracing_subscriber::filter::EnvFilter;
-use tracing_subscriber::fmt::format::FmtSpan;
-use windows::core::HSTRING;
-use windows_core::PCWSTR;
-
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::ffi::OsString;
 use std::fmt;
+use std::fmt::Write as _;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
@@ -23,7 +14,17 @@ use std::iter::IntoIterator;
 use std::mem;
 use std::str::FromStr;
 
+use clap::{value_parser, ArgAction, Command};
+use clap::{Arg, ArgMatches};
+use indexmap::IndexMap;
+use serde::Serialize;
 use toml::value::Value;
+use toml_edit::DocumentMut;
+use tracing::{debug, error};
+use tracing_subscriber::filter::EnvFilter;
+use tracing_subscriber::fmt::format::FmtSpan;
+use windows::core::HSTRING;
+use windows_core::PCWSTR;
 
 use sbz_switch::soundcore::SoundCoreParamValue;
 use sbz_switch::{Configuration, DeviceInfo, EndpointConfiguration};
@@ -169,8 +170,8 @@ fn run() -> i32 {
 
 #[derive(Debug)]
 enum FormatError {
-    TomlRead(toml::de::Error),
-    TomlWrite(toml::ser::Error),
+    TomlRead(toml_edit::de::Error),
+    TomlWrite(toml_edit::ser::Error),
     Json(serde_json::Error),
     Yaml(serde_yaml::Error),
     ValueError(&'static str),
@@ -227,7 +228,7 @@ fn format_configuration(
                             .collect()
                     }),
                 };
-            toml::to_string_pretty(&value).map_err(FormatError::TomlWrite)
+            to_toml(&value).map_err(FormatError::TomlWrite)
         }
         "json" => {
             let value: SerdeConfiguration<serde_json::Map<String, serde_json::Value>> =
@@ -324,7 +325,7 @@ fn unformat_configuration(value: &str, matches: &ArgMatches) -> Result<Configura
         match matches.get_one::<String>("format").unwrap().as_str() {
             "toml" => {
                 let value: SerdeConfiguration<BTreeMap<String, BTreeMap<String, Value>>> =
-                    toml::from_str(value).map_err(FormatError::TomlRead)?;
+                    toml_edit::de::from_str(value).map_err(FormatError::TomlRead)?;
                 Configuration {
                     endpoint: value.endpoint.map(Into::into),
                     creative: transpose(value.creative.map(|creative| {
@@ -574,7 +575,7 @@ fn list_devices(matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
         .map(SerializableDeviceInfo::from)
         .collect();
     let text = match matches.get_one::<String>("format").unwrap().as_str() {
-        "toml" => toml::to_string_pretty(&devices).map_err(FormatError::TomlWrite)?,
+        "toml" => to_toml(&devices).map_err(FormatError::TomlWrite)?,
         "json" => serde_json::to_string_pretty(&devices).map_err(FormatError::Json)?,
         "yaml" => serde_yaml::to_string(&devices).map_err(FormatError::Yaml)?,
         _ => unreachable!(),
@@ -712,4 +713,35 @@ fn watch(matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
         println!("{:?}", event);
     }
     Ok(())
+}
+
+fn to_toml<T>(value: &T) -> Result<String, toml_edit::ser::Error>
+where
+    T: Serialize + ?Sized,
+{
+    let mut output = String::new();
+    let value = value.serialize(toml_edit::ser::ValueSerializer::new())?;
+    let mut document = DocumentMut::new();
+    match value {
+        toml_edit::Value::Array(array) if array.iter().all(|i| i.is_inline_table()) => {
+            for v in array.into_iter() {
+                match v {
+                    toml_edit::Value::InlineTable(inline) => {
+                        *document.as_table_mut() = inline.into_table();
+                        if !output.is_empty() {
+                            writeln!(output).unwrap();
+                        }
+                        write!(output, "[[]]\n{document}").unwrap();
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
+        toml_edit::Value::InlineTable(table) => {
+            *document.as_table_mut() = table.into_table();
+            write!(output, "{document}").unwrap();
+        }
+        _ => return Err(toml_edit::ser::Error::UnsupportedType(None)),
+    };
+    Ok(output)
 }
