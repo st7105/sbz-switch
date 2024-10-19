@@ -20,6 +20,7 @@ use indexmap::IndexMap;
 use serde::Serialize;
 use toml::value::Value;
 use toml_edit::DocumentMut;
+use tracing::level_filters::LevelFilter;
 use tracing::{debug, error};
 use tracing_subscriber::filter::EnvFilter;
 use tracing_subscriber::fmt::format::FmtSpan;
@@ -143,7 +144,11 @@ fn run() -> i32 {
         .get_matches();
 
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
+        .with_env_filter(
+            EnvFilter::builder()
+                .with_default_directive(LevelFilter::INFO.into())
+                .from_env_lossy(),
+        )
         .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
         .init();
 
