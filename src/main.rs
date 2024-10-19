@@ -150,6 +150,7 @@ fn run() -> i32 {
                 .from_env_lossy(),
         )
         .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
+        .with_writer(io::stderr)
         .init();
 
     let result = match matches.subcommand().unwrap() {
