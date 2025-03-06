@@ -34,7 +34,7 @@ use crate::soundcore::{
     SoundCoreParamValue, SoundCoreParameter,
 };
 
-#[cfg(not(any(target_arch = "x86", feature = "ctsndcr_ignore_arch")))]
+#[cfg(not(any(target_arch = "x86")))]
 compile_error!("This crate must be built for x86 for compatibility with sound drivers." +
     "(build for i686-pc-windows-msvc or suppress this error using feature ctsndcr_ignore_arch)");
 

@@ -1,6 +1,6 @@
 use std::mem::MaybeUninit;
 use std::str;
-
+use serde_derive::{Deserialize, Serialize};
 use tracing::{info, trace, trace_span};
 use windows::Win32::Foundation::E_ACCESSDENIED;
 
@@ -8,7 +8,8 @@ use crate::com::ComObject;
 use crate::ctsndcr::{ISoundCore, Param, ParamInfo, ParamValue};
 
 /// Captures the value of a parameter.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(tag = "type", content = "value")]
 pub enum SoundCoreParamValue {
     /// A floating point value
     Float(f32),

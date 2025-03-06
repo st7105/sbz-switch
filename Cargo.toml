@@ -13,16 +13,16 @@ rust-version = "1.61"
 
 [dependencies]
 clap = { version = "4", features = ["cargo"] }
-futures = "0.3"
-indexmap = "2"
-regex = "1"
-serde = "1"
-serde_derive = "1"
-serde_json = "1"
-serde_yaml = "0.8"
-tracing = { version = "0.1", features = ["max_level_trace", "release_max_level_info"] }
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-toml = "0.8"
+futures = "0.3.31"
+indexmap = "2.7.1"
+regex = "1.11.1"
+serde = "1.0.218"
+serde_derive = "1.0.218"
+serde_json = "1.0.140"
+serde_yaml = "0.9.34"
+tracing = { version = "0.1.40", features = ["max_level_trace", "release_max_level_info"] }
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+toml = "0.8.20"
 toml_edit = { version = "0.22", features = ["serde"] }
 windows-core = "0.58.0"
 
