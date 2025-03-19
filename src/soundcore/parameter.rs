@@ -23,6 +23,22 @@ pub enum SoundCoreParamValue {
     None,
 }
 
+impl PartialEq for SoundCoreParamValue {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (SoundCoreParamValue::Float(a), SoundCoreParamValue::Float(b)) => {
+                // Сравнение f32: используем точное равенство или можно добавить epsilon
+                a == b || (a.is_nan() && b.is_nan()) // Учитываем NaN как равные
+            }
+            (SoundCoreParamValue::Bool(a), SoundCoreParamValue::Bool(b)) => a == b,
+            (SoundCoreParamValue::U32(a), SoundCoreParamValue::U32(b)) => a == b,
+            (SoundCoreParamValue::I32(a), SoundCoreParamValue::I32(b)) => a == b,
+            (SoundCoreParamValue::None, SoundCoreParamValue::None) => true,
+            _ => false, // Разные варианты не равны
+        }
+    }
+}
+
 /// Represents a parameter of a feature.
 #[derive(Debug)]
 pub struct SoundCoreParameter {
