@@ -1,6 +1,6 @@
+use serde_derive::{Deserialize, Serialize};
 use std::mem::MaybeUninit;
 use std::{fmt, str};
-use serde_derive::{Deserialize, Serialize};
 use tracing::{info, trace, trace_span};
 use windows::Win32::Foundation::E_ACCESSDENIED;
 
