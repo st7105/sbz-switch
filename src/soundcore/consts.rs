@@ -2,7 +2,7 @@
 #![allow(unknown_lints)]
 #![allow(clippy::unreadable_literal)]
 
-use windows::{core::GUID};
+use windows::core::GUID;
 use windows::Win32::Foundation::PROPERTYKEY;
 
 pub const PKEY_SOUNDCORECTL_CLSID_Z: PROPERTYKEY = PROPERTYKEY {

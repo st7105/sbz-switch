@@ -27,7 +27,7 @@ use windows::Win32::Media::Audio::{
 use windows::Win32::System::Com::StructuredStorage::{PropVariantClear, PROPVARIANT};
 use windows::Win32::System::Com::{CoCreateInstance, CoTaskMemFree, CLSCTX_ALL, STGM_READ};
 use windows::Win32::System::Variant::VT_LPWSTR;
-use windows::Win32::UI::Shell::PropertiesSystem::{IPropertyStore};
+use windows::Win32::UI::Shell::PropertiesSystem::IPropertyStore;
 
 pub(crate) use self::event::VolumeEvents;
 pub use self::event::VolumeNotification;
@@ -268,15 +268,9 @@ impl PropertyStore {
             }
             if property_value.vt() != VT_LPWSTR {
                 PropVariantClear(&mut property_value).unwrap();
-                return Err(GetPropertyError::UnexpectedType(
-                    property_value.vt().0,
-                ));
+                return Err(GetPropertyError::UnexpectedType(property_value.vt().0));
             }
-            let chars = property_value
-                .Anonymous
-                .Anonymous
-                .Anonymous
-                .pwszVal.0;
+            let chars = property_value.Anonymous.Anonymous.Anonymous.pwszVal.0;
             let length = (0..isize::MAX).position(|i| *chars.offset(i) == 0);
             let str = length.map(|length| {
                 OsString::from_wide(slice::from_raw_parts(chars, length))
