@@ -16,7 +16,7 @@ use futures::{executor, SinkExt};
 use regex::Regex;
 use tracing::{info, instrument};
 use windows::core::{implement, GUID, PCWSTR};
-use windows::Win32::Foundation::E_ABORT;
+use windows::Win32::Foundation::{E_ABORT, PROPERTYKEY};
 use windows::Win32::Media::Audio::Endpoints::{
     IAudioEndpointVolume, IAudioEndpointVolumeCallback, IAudioEndpointVolumeCallback_Impl,
 };
@@ -24,11 +24,10 @@ use windows::Win32::Media::Audio::{
     eConsole, eRender, IMMDevice, IMMDeviceEnumerator, MMDeviceEnumerator,
     AUDIO_VOLUME_NOTIFICATION_DATA, DEVICE_STATE_ACTIVE,
 };
-use windows::Win32::System::Com::StructuredStorage::PropVariantClear;
+use windows::Win32::System::Com::StructuredStorage::{PropVariantClear, PROPVARIANT};
 use windows::Win32::System::Com::{CoCreateInstance, CoTaskMemFree, CLSCTX_ALL, STGM_READ};
 use windows::Win32::System::Variant::VT_LPWSTR;
-use windows::Win32::UI::Shell::PropertiesSystem::{IPropertyStore, PROPERTYKEY};
-use windows_core::PROPVARIANT;
+use windows::Win32::UI::Shell::PropertiesSystem::{IPropertyStore};
 
 pub(crate) use self::event::VolumeEvents;
 pub use self::event::VolumeNotification;
@@ -263,22 +262,21 @@ impl PropertyStore {
     fn get_string_value(&self, key: &PROPERTYKEY) -> Result<Option<String>, GetPropertyError> {
         unsafe {
             let mut property_value = self.get_value(key)?;
-            tracing::Span::current().record("type", property_value.as_raw().Anonymous.Anonymous.vt);
+            tracing::Span::current().record("type", property_value.vt().0);
             if property_value.is_empty() {
                 return Ok(None);
             }
-            if property_value.as_raw().Anonymous.Anonymous.vt != VT_LPWSTR.0 {
+            if property_value.vt() != VT_LPWSTR {
                 PropVariantClear(&mut property_value).unwrap();
                 return Err(GetPropertyError::UnexpectedType(
-                    property_value.as_raw().Anonymous.Anonymous.vt,
+                    property_value.vt().0,
                 ));
             }
             let chars = property_value
-                .as_raw()
                 .Anonymous
                 .Anonymous
                 .Anonymous
-                .pwszVal;
+                .pwszVal.0;
             let length = (0..isize::MAX).position(|i| *chars.offset(i) == 0);
             let str = length.map(|length| {
                 OsString::from_wide(slice::from_raw_parts(chars, length))

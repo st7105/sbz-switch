@@ -2,7 +2,8 @@
 #![allow(unknown_lints)]
 #![allow(clippy::unreadable_literal)]
 
-use windows::{core::GUID, Win32::UI::Shell::PropertiesSystem::PROPERTYKEY};
+use windows::{core::GUID};
+use windows::Win32::Foundation::PROPERTYKEY;
 
 pub const PKEY_DeviceInterface_FriendlyName: PROPERTYKEY = PROPERTYKEY {
     fmtid: GUID::from_u128(0x026e516e_b814_414b_83cd_856d6fef4822),

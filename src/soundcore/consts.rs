@@ -2,7 +2,8 @@
 #![allow(unknown_lints)]
 #![allow(clippy::unreadable_literal)]
 
-use windows::{core::GUID, Win32::UI::Shell::PropertiesSystem::PROPERTYKEY};
+use windows::{core::GUID};
+use windows::Win32::Foundation::PROPERTYKEY;
 
 pub const PKEY_SOUNDCORECTL_CLSID_Z: PROPERTYKEY = PROPERTYKEY {
     fmtid: GUID::from_u128(0xc949c6aa_132b_4511_bb1b_35261a2a6333),
